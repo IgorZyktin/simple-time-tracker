@@ -2,7 +2,7 @@
 
 import uvicorn
 
-from simple_time_tracker import app
+from simple_time_tracker.app import app
 
 
 def main():
