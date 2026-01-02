@@ -1,6 +1,18 @@
+"""Точка входа."""
+
+import uvicorn
+
+from simple_time_tracker.app import app
+
+
 def main():
-    print("Hello from simple-time-tracker!")
+    """Точка входа."""
+    uvicorn.run(
+        app,
+        host='0.0.0.0',
+        port=7070,
+    )
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

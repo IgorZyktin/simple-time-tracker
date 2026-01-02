@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ subject }}</title>
+    <style>
+    body {
+        background-color: {{ active_color if is_active else passive_color}};
+        text-align: center;
+    }
+    </style>
+    <script>
+        let start
+        {% if start %}
+            start = new Date({{ start.year}}, {{ start.month - 1 }}, {{ start.day }}, {{ start.hour }}, {{ start.minute }}, 0, 0)
+        {% else %}
+            start = null
+        {% endif %}
+
+        function humanReadableDelta(startDate, endDate) {
+            let deltaMs = Math.abs(endDate.getTime() - startDate.getTime());
+
+            const seconds = Math.floor(deltaMs / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            const days = Math.floor(hours / 24);
+
+            const parts = [];
+            if (days > 0) parts.push(`${days}д`);
+            if (hours % 24 > 0) parts.push(`${hours % 24}ч`);
+            if (minutes % 60 > 0) parts.push(`${minutes % 60}м`);
+            if (seconds % 60 > 0 && parts.length === 0) parts.push(`${seconds % 60}с`); // Only show seconds if other units are 0
+
+            return parts.join(' ');
+        }
+
+        function updateClock() {
+            if (start === null)
+                return
+
+
+            const hour = start.getHours().toString().padStart(2, '0')
+            const minute = start.getMinutes().toString().padStart(2, '0')
+
+            let clock = document.getElementById('clock')
+
+            if (!clock)
+                return
+
+            let now = new Date()
+            let delta = humanReadableDelta(start, now)
+            clock.textContent = `${delta} (старт в ${hour}:${minute})`
+        }
+
+        async function updateStatus(newStatus){
+            await fetch(`/?is_active=${newStatus}`, {
+              method: 'POST',
+            });
+            window.location.reload()
+        }
+
+        setInterval(() => updateClock(), 1000)
+    </script>
+</head>
+<body>
+<h1>{{ subject }} {{active_name if is_active else passive_name}}</h1>
+<p id="clock"></p>
+{% if is_active %}
+<button type="button" onclick="updateStatus(0)">{{ passive_name }}</button>
+{% else %}
+<button type="button"  onclick="updateStatus(1)">{{ active_name }}</button>
+{% endif %}
+<script>updateClock()</script>
+</body>
+</html>
