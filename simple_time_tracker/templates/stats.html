@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ subject }}</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            text-align: center;
+        }
+
+        .minute {
+            margin: 0;
+            padding: 0;
+            width: 1px;
+            min-width: 1px;
+            height: 1em;
+        }
+
+        .active_minute {
+            background-color: {{ active_color }};
+        }
+        .passive_minute {
+            background-color: {{ passive_color }};
+        }
+        .unknown_minute {
+            background-color: {{ unknown_color }};
+        }
+    </style>
+</head>
+<body>
+<h1>{{ subject }}</h1>
+<table>
+    <tr>
+        <td>День</td>
+        <td>Σ {{ active_name }}</td>
+        <td>Σ {{ passive_name }}</td>
+        {% for hour in range(24) %}
+            <td style="text-align: left" colspan=60>{{ hour }}</td>
+        {% endfor %}
+    </tr>
+{% for _date, day in stats.items() %}
+
+    <tr>
+        <td style="min-width: 80px">{{ _date.day }} {{ month_map[_date.month] }}</td>
+        <td>{{ day.total_active }}</td>
+        <td>{{ day.total_passive }}</td>
+        {% for minute in day.minutes %}
+            {% if minute.is_active is none %}
+                <td class="unknown_minute minute"></td>
+            {% elif minute.is_active %}
+                <td class="active_minute minute"></td>
+            {% else %}
+                <td class="passive_minute minute"></td>
+            {% endif %}
+        {% endfor %}
+    </tr>
+{% endfor %}
+</table>
+
+</body>
+</html>

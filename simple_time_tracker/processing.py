@@ -1,0 +1,92 @@
+"""Инструменты по работе с данными."""
+
+from dataclasses import dataclass
+from datetime import date
+from datetime import datetime
+from datetime import timedelta
+import itertools
+
+
+@dataclass
+class Minute:
+    """Модель минуты."""
+
+    moment: datetime
+    is_active: bool | None
+
+
+class Day:
+    """Данные по одному дню."""
+
+    def __init__(self, minutes: list[Minute]) -> None:
+        """Инициализировать экземпляр."""
+        self.minutes = minutes
+
+    @property
+    def total_active(self) -> int:
+        """Вернуть сумму активных минут."""
+        return sum(1 for each in self.minutes if each.is_active)
+
+    @property
+    def total_passive(self) -> int:
+        """Вернуть сумму пассивных минут."""
+        return sum(
+            1
+            for each in self.minutes
+            if not each.is_active and each.is_active is not None
+        )
+
+
+def to_minutes(raw_starts: list[tuple[datetime, bool]]) -> list[Minute]:
+    """Сформировать минуты из стартовых моментов.
+
+    Пример выходных данных:
+    [
+        Minute(moment=datetime.datetime(2026, 1, 2, 0, 14), is_active=True),
+        Minute(moment=datetime.datetime(2026, 1, 2, 0, 15), is_active=True),
+        Minute(moment=datetime.datetime(2026, 1, 2, 0, 16), is_active=True),
+        Minute(moment=datetime.datetime(2026, 1, 2, 0, 17), is_active=True),
+        Minute(moment=datetime.datetime(2026, 1, 2, 0, 18), is_active=True),
+        ...
+    ]
+    """
+    minutes: list[Minute] = []
+
+    for (l_start, l_active), (r_start, r_active) in itertools.pairwise(
+        raw_starts
+    ):
+        moment = l_start.replace(second=0, microsecond=0)
+        while moment < r_start:
+            minutes.append(Minute(moment=moment, is_active=l_active))
+            moment += timedelta(minutes=1)
+
+    return minutes
+
+
+def group_minutes_by_days(minutes: list[Minute]) -> dict[date, list[Minute]]:
+    """Разложить минуты по датам.
+
+    Пример выходных данных:
+    {
+        datetime.date(2026, 1, 2): [
+            Minute(moment=datetime.datetime(2026, 1, 2, 0, 14), is_active=True),
+            ...
+        ],
+    }
+    """
+    result: dict[date, list[Minute]] = {}
+
+    for minute in minutes:
+        _date = minute.moment.date()
+
+        if _date in result:
+            result[_date].append(minute)
+        else:
+            result[_date] = [minute]
+
+    return result
+
+
+def wrap_days(by_day: dict[date, list[Minute]]) -> dict[date, Day]:
+    """Обернуть данные по минутам во вспомогательный класс."""
+    return {_date: Day(minutes=minutes) for _date, minutes in by_day.items()}

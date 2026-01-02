@@ -1,9 +1,12 @@
 """Вспомогательный класс для хранения данных."""
 
 import csv
+from datetime import date
 from datetime import datetime
 import os
 from pathlib import Path
+
+from simple_time_tracker import processing
 
 
 class Storage:
@@ -20,7 +23,6 @@ class Storage:
         moment: datetime,
     ) -> None:
         """Поменять текущее состояние."""
-
         filename = self.path / (moment.strftime('%Y-%m') + '.csv')
 
         timestamp = moment.isoformat().replace(':', '-')
@@ -59,3 +61,53 @@ class Storage:
                 '%Y-%m-%dT%H-%M-%S.%f',
             )
             return bool(int(str_is_active)), timestamp
+
+    def gather_stats(self, days: int) -> dict[date, processing.Day]:
+        """Сформировать статистический отчёт.
+
+        Формат данных:
+         {
+            <день1>: <данные по дню>,
+            <день2>: <данные по дню>,
+            ...
+         }
+        """
+        raw_starts = self._gather_raw_starts(days)
+        minutes = processing.to_minutes(raw_starts)
+        by_days = processing.group_minutes_by_days(minutes)
+        wrapped = processing.wrap_days(by_days)
+        return wrapped
+
+    def _gather_raw_starts(self, days: int) -> list[tuple[datetime, bool]]:
+        """Собрать все стартовые моменты за указанное число дней.
+
+        Пример выходных данных:
+        [
+            (datetime.datetime(2026, 1, 2, 0, 14, 18, 163403), True),
+            (datetime.datetime(2026, 1, 2, 1, 14, 26, 30100), False),
+            (datetime.datetime(2026, 1, 2, 2, 14, 33, 171775), True),
+            (datetime.datetime(2026, 1, 2, 3, 14, 35, 450103), False),
+            (datetime.datetime(2026, 1, 2, 4, 15, 40, 314086), True),
+            ...
+        ]
+        """
+        files = [
+            str(x)
+            for x in os.listdir(self.path.absolute())
+            if str(x).endswith('.csv')
+        ]
+
+        lines: list[tuple[datetime, bool]] = []
+
+        for filename in files[:days]:
+            with open(self.path / filename) as file:
+                reader = csv.reader(file)
+                for str_timestamp, str_is_active in reader:
+                    timestamp = datetime.strptime(  # noqa: DTZ007
+                        str_timestamp,
+                        '%Y-%m-%dT%H-%M-%S.%f',
+                    )
+                    is_active = bool(int(str_is_active))
+                    lines.append((timestamp, is_active))
+
+        return lines

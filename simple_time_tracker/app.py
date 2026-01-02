@@ -1,8 +1,9 @@
 """Веб-приложение."""
 
-import logging
 from datetime import datetime
+import logging
 from typing import Annotated
+from typing import Literal
 
 from fastapi import Depends
 from fastapi import FastAPI
@@ -55,3 +56,51 @@ async def change_state(
     storage.set_state(is_active, moment)
     LOG.info('[%s] Setting is_active to %s', moment, is_active)
     return {'message': f'changed to {is_active}'}
+
+
+@app.get('/simple-time-tracker/stats')
+async def stats(
+    storage: Annotated[Storage, Depends(dep.get_storage)],
+    request: Request,
+    subject: str = 'Ребёнок',
+    active_name: str = 'бодрствует',
+    passive_name: str = 'спит',
+    active_color: str = 'rgb(252,3,3)',
+    passive_color: str = 'rgb(3,182,252)',
+    unknown_color: str = 'rgb(119,119,119)',
+    highlight: Literal['active', 'passive'] = 'passive',
+    days: int = 7,
+):
+    """Вывести статистику."""
+    month_map = {
+        1: 'января',
+        2: 'февраля',
+        3: 'марта',
+        4: 'апреля',
+        5: 'мая',
+        6: 'июня',
+        7: 'июля',
+        8: 'августа',
+        9: 'сентября',
+        10: 'октября',
+        11: 'ноября',
+        12: 'декабря',
+    }
+
+    _stats = storage.gather_stats(days=days)
+    return templates.TemplateResponse(
+        request=request,
+        name='stats.html',
+        context={
+            'stats': _stats,
+            'subject': subject,
+            'active_name': active_name,
+            'passive_name': passive_name,
+            'active_color': active_color,
+            'passive_color': passive_color,
+            'unknown_color': unknown_color,
+            'highlight': highlight,
+            'days': days,
+            'month_map': month_map,
+        },
+    )
