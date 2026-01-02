@@ -63,7 +63,8 @@
         }
 
         async function updateStatus(newStatus){
-            await fetch(`/?is_active=${newStatus}`, {
+            const url = "{{ request.url }}"
+            await fetch(`${url}?is_active=${newStatus}`, {
               method: 'POST',
             });
             window.location.reload()
