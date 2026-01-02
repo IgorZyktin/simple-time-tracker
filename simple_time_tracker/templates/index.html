@@ -12,7 +12,7 @@
     <script>
         let start
         {% if start %}
-            start = new Date({{ start.year}}, {{ start.month - 1 }}, {{ start.day }}, {{ start.hour }}, {{ start.minute }}, 0, 0)
+            start = new Date({{ start.year}}, {{ start.month - 1 }}, {{ start.day }}, {{ start.hour }}, {{ start.minute }}, {{ start.second }}, 0)
         {% else %}
             start = null
         {% endif %}
