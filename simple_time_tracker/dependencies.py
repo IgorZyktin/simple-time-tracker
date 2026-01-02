@@ -2,7 +2,7 @@
 
 import functools
 
-from storage import Storage
+from simple_time_tracker.storage import Storage
 
 
 @functools.lru_cache
