@@ -1,5 +1,7 @@
 """Веб-приложение."""
 
+import logging
+from datetime import datetime
 from typing import Annotated
 
 from fastapi import Depends
@@ -11,11 +13,11 @@ from simple_time_tracker import dependencies as dep
 from simple_time_tracker.storage import Storage
 
 app = FastAPI()
-
 templates = Jinja2Templates(directory='simple_time_tracker/templates')
+LOG = logging.getLogger(__name__)
 
 
-@app.get('/')
+@app.get('/simple-time-tracker')
 async def status(
     storage: Annotated[Storage, Depends(dep.get_storage)],
     request: Request,
@@ -26,7 +28,8 @@ async def status(
     passive_color: str = 'rgb(104,128,180)',
 ):
     """Вернуть страницу с отображением текущего статуса."""
-    is_active, start = storage.get_state()
+    moment = datetime.now()  # noqa: DTZ005
+    is_active, start = storage.get_state(moment)
     return templates.TemplateResponse(
         request=request,
         name='index.html',
@@ -42,11 +45,13 @@ async def status(
     )
 
 
-@app.post('/')
+@app.post('/simple-time-tracker')
 async def change_state(
     storage: Annotated[Storage, Depends(dep.get_storage)],
     is_active: bool,
 ) -> dict:
     """Изменить текущее состояние."""
-    storage.set_state(is_active)
+    moment = datetime.now()  # noqa: DTZ005
+    storage.set_state(is_active, moment)
+    LOG.info('[%s] Setting is_active to %s', moment, is_active)
     return {'message': f'changed to {is_active}'}

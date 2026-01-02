@@ -63,8 +63,7 @@
         }
 
         async function updateStatus(newStatus){
-            const url = "{{ request.url }}"
-            await fetch(`${url}?is_active=${newStatus}`, {
+            await fetch(`/simple-time-tracker?is_active=${newStatus}`, {
               method: 'POST',
             });
             window.location.reload()

@@ -14,23 +14,29 @@ class Storage:
         self.path = Path(path)
         self.path.mkdir(exist_ok=True)
 
-    def set_state(self, is_active: bool) -> None:
+    def set_state(
+        self,
+        is_active: bool,
+        moment: datetime,
+    ) -> None:
         """Поменять текущее состояние."""
-        moment = datetime.now()  # noqa: DTZ005
+
         filename = self.path / (moment.strftime('%Y-%m') + '.csv')
 
         timestamp = moment.isoformat().replace(':', '-')
         with open(filename, mode='a') as file:
             file.write(f'{timestamp},{int(is_active)}\n')
 
-    def get_state(self) -> tuple[bool, datetime]:
+    def get_state(
+        self,
+        moment: datetime,
+    ) -> tuple[bool, datetime]:
         """Вернуть текущее состояние."""
         files = [
             str(x)
             for x in os.listdir(self.path.absolute())
             if str(x).endswith('.csv')
         ]
-        moment = datetime.now()  # noqa: DTZ005
 
         if not files:
             return False, moment
