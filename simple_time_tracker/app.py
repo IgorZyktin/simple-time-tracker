@@ -2,14 +2,17 @@
 
 from typing import Annotated
 
-from fastapi import FastAPI, Depends, Request
-from simple_time_tracker.storage import Storage
-from simple_time_tracker import dependencies as dep
+from fastapi import Depends
+from fastapi import FastAPI
+from fastapi import Request
 from fastapi.templating import Jinja2Templates
+
+from simple_time_tracker import dependencies as dep
+from simple_time_tracker.storage import Storage
 
 app = FastAPI()
 
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory='templates')
 
 
 @app.get('/')
@@ -35,7 +38,7 @@ async def status(
             'passive_color': passive_color,
             'is_active': is_active,
             'start': start,
-        }
+        },
     )
 
 
