@@ -12,7 +12,7 @@ from simple_time_tracker.storage import Storage
 
 app = FastAPI()
 
-templates = Jinja2Templates(directory='templates')
+templates = Jinja2Templates(directory='simple_time_tracker/templates')
 
 
 @app.get('/')
