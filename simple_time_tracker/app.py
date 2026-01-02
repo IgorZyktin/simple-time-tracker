@@ -7,8 +7,8 @@ from fastapi import FastAPI
 from fastapi import Request
 from fastapi.templating import Jinja2Templates
 
-from simple_time_tracker import dependencies as dep
-from simple_time_tracker.storage import Storage
+import dependencies as dep
+from storage import Storage
 
 app = FastAPI()
 

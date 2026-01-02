@@ -1,0 +1,11 @@
+[Unit]
+Description=Simple time tracker
+After=network.target
+
+[Service]
+User=simple_time_tracker
+WorkingDirectory=/home/simple_time_tracker/simple-time-tracker
+ExecStart=/home/simple_time_tracker/simple-time-tracker/.venv/bin/python -m simple_time_tracker
+
+[Install]
+WantedBy=multi-user.target
