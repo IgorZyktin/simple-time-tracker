@@ -23,17 +23,21 @@ class Day:
         self.minutes = minutes
 
     @property
-    def total_active(self) -> int:
+    def total_active(self) -> str:
         """Вернуть сумму активных минут."""
-        return sum(1 for each in self.minutes if each.is_active)
+        return human_readable_time(
+            sum(1 for each in self.minutes if each.is_active) * 60
+        )
 
     @property
-    def total_passive(self) -> int:
+    def total_passive(self) -> str:
         """Вернуть сумму пассивных минут."""
-        return sum(
-            1
-            for each in self.minutes
-            if not each.is_active and each.is_active is not None
+        return human_readable_time(
+            sum(
+                1
+                for each in self.minutes
+                if not each.is_active and each.is_active is not None
+            ) * 60
         )
 
 
@@ -87,7 +91,9 @@ def group_minutes_by_days(minutes: list[Minute]) -> dict[date, list[Minute]]:
     return result
 
 
-def spread_minutes(by_day: dict[date, list[Minute]]) -> dict[date, list[Minute]]:
+def spread_minutes(
+    by_day: dict[date, list[Minute]],
+) -> dict[date, list[Minute]]:
     """Заполнить пустые минуты в сутках."""
     result: dict[date, list[Minute]] = {}
 
@@ -98,7 +104,9 @@ def spread_minutes(by_day: dict[date, list[Minute]]) -> dict[date, list[Minute]]
             for minute in range(60):
                 array.append(
                     Minute(
-                        moment=datetime(_date.year, _date.month, _date.day, hour, minute),
+                        moment=datetime(
+                            _date.year, _date.month, _date.day, hour, minute
+                        ),
                         is_active=None,
                     )
                 )
@@ -115,3 +123,34 @@ def spread_minutes(by_day: dict[date, list[Minute]]) -> dict[date, list[Minute]]
 def wrap_days(by_day: dict[date, list[Minute]]) -> dict[date, Day]:
     """Обернуть данные по минутам во вспомогательный класс."""
     return {_date: Day(minutes=minutes) for _date, minutes in by_day.items()}
+
+
+def human_readable_time(seconds: float) -> str:
+    """Отформатировать время в человекочитаемом виде.
+
+    >>> human_readable_time(46551387)
+    '76н 6д 18ч 56м 27с'
+    >>> human_readable_time(600)
+    '10м'
+    """
+    if seconds < 1:
+        return '0с'
+
+    _weeks = 0
+    _days = 0
+    _hours = 0
+    _minutes = 0
+    _seconds = 0
+    _suffixes = ('н', 'д', 'ч', 'м', 'с')
+
+    if seconds > 0:
+        _minutes, _seconds = divmod(int(round(seconds)), 60)  # noqa: RUF046
+        _hours, _minutes = divmod(_minutes, 60)
+        _days, _hours = divmod(_hours, 24)
+        _weeks, _days = divmod(_days, 7)
+
+    return ' '.join(
+        f'{x}{_suffixes[i]}'
+        for i, x in enumerate([_weeks, _days, _hours, _minutes, _seconds])
+        if x
+    )

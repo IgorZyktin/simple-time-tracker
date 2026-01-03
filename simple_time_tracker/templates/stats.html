@@ -30,21 +30,21 @@
 </head>
 <body>
 <h1>{{ subject }}</h1>
+
 <table>
     <tr>
         <td>День</td>
-        <td>Σ {{ active_name }}</td>
-        <td>Σ {{ passive_name }}</td>
+        <td>Σ<br>{{ active_name }}</td>
+        <td>Σ<br>{{ passive_name }}</td>
         {% for hour in range(24) %}
             <td style="text-align: left" colspan=60>{{ hour }}</td>
         {% endfor %}
     </tr>
 {% for _date, day in stats.items() %}
-
     <tr>
         <td style="min-width: 80px">{{ _date.day }} {{ month_map[_date.month] }}</td>
-        <td>{{ day.total_active }}</td>
-        <td>{{ day.total_passive }}</td>
+        <td style="min-width: 80px">{{ day.total_active }}</td>
+        <td style="min-width: 80px">{{ day.total_passive }}</td>
         {% for minute in day.minutes %}
             {% if minute.is_active is none %}
                 <td class="unknown_minute minute"></td>
