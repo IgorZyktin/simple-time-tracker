@@ -75,7 +75,8 @@ class Storage:
         raw_starts = self._gather_raw_starts(days)
         minutes = processing.to_minutes(raw_starts)
         by_days = processing.group_minutes_by_days(minutes)
-        wrapped = processing.wrap_days(by_days)
+        spread = processing.spread_minutes(by_days)
+        wrapped = processing.wrap_days(spread)
         return wrapped
 
     def _gather_raw_starts(self, days: int) -> list[tuple[datetime, bool]]:

@@ -87,6 +87,31 @@ def group_minutes_by_days(minutes: list[Minute]) -> dict[date, list[Minute]]:
     return result
 
 
+def spread_minutes(by_day: dict[date, list[Minute]]) -> dict[date, list[Minute]]:
+    """Заполнить пустые минуты в сутках."""
+    result: dict[date, list[Minute]] = {}
+
+    for _date, minutes in by_day.items():
+        array: list[Minute] = []
+
+        for hour in range(24):
+            for minute in range(60):
+                array.append(
+                    Minute(
+                        moment=datetime(_date.year, _date.month, _date.day, hour, minute),
+                        is_active=None,
+                    )
+                )
+
+        for minute in minutes:
+            index = minute.moment.hour * 60 + minute.moment.minute
+            array[index] = minute
+
+        result[_date] = array
+
+    return result
+
+
 def wrap_days(by_day: dict[date, list[Minute]]) -> dict[date, Day]:
     """Обернуть данные по минутам во вспомогательный класс."""
     return {_date: Day(minutes=minutes) for _date, minutes in by_day.items()}
