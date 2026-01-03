@@ -53,6 +53,11 @@ async def change_state(
 ) -> dict:
     """Изменить текущее состояние."""
     moment = datetime.now()  # noqa: DTZ005
+    previous_is_active, start = storage.get_state(moment)
+
+    if is_active == previous_is_active:
+        return {'message': f'no difference from {is_active}'}
+
     storage.set_state(is_active, moment)
     LOG.info('[%s] Setting is_active to %s', moment, is_active)
     return {'message': f'changed to {is_active}'}
