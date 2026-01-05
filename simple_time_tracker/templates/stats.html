@@ -40,18 +40,26 @@
             <td style="text-align: left" colspan=60>{{ hour }}</td>
         {% endfor %}
     </tr>
+    <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+        {% for minute in range(1440) %}
+            <td style="padding: 0; width: 1px"></td>
+        {% endfor %}
+    </tr>
 {% for _date, day in stats.items() %}
     <tr>
         <td style="min-width: 80px">{{ _date.day }} {{ month_map[_date.month] }}</td>
         <td style="min-width: 80px">{{ day.total_active }}</td>
         <td style="min-width: 80px">{{ day.total_passive }}</td>
-        {% for minute in day.minutes %}
-            {% if minute.is_active is none %}
-                <td class="unknown_minute minute"></td>
-            {% elif minute.is_active %}
-                <td class="active_minute minute"></td>
+        {% for interval in day.intervals %}
+            {% if interval.is_active is none %}
+                <td class="unknown_minute minute" colspan={{ interval.minutes }}>{{ interval.duration }}</td>
+            {% elif interval.is_active %}
+                <td class="active_minute minute" colspan={{ interval.minutes }}>{{ interval.duration }}</td>
             {% else %}
-                <td class="passive_minute minute"></td>
+                <td class="passive_minute minute" colspan={{ interval.minutes }}>{{ interval.duration }}</td>
             {% endif %}
         {% endfor %}
     </tr>

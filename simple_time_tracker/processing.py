@@ -15,18 +15,31 @@ class Minute:
     is_active: bool | None
 
 
+@dataclass
+class Interval:
+    """Модель интервала."""
+
+    minutes: int
+    is_active: bool | None
+
+    @property
+    def duration(self) -> str:
+        """Вернуть сумму минут."""
+        return human_readable_time(self.minutes * 60)
+
+
 class Day:
     """Данные по одному дню."""
 
-    def __init__(self, minutes: list[Minute]) -> None:
+    def __init__(self, intervals: list[Interval]) -> None:
         """Инициализировать экземпляр."""
-        self.minutes = minutes
+        self.intervals = intervals
 
     @property
     def total_active(self) -> str:
         """Вернуть сумму активных минут."""
         return human_readable_time(
-            sum(1 for each in self.minutes if each.is_active) * 60
+            sum(each.minutes for each in self.intervals if each.is_active) * 60
         )
 
     @property
@@ -34,8 +47,8 @@ class Day:
         """Вернуть сумму пассивных минут."""
         return human_readable_time(
             sum(
-                1
-                for each in self.minutes
+                each.minutes
+                for each in self.intervals
                 if not each.is_active and each.is_active is not None
             ) * 60
         )
@@ -122,7 +135,26 @@ def spread_minutes(
 
 def wrap_days(by_day: dict[date, list[Minute]]) -> dict[date, Day]:
     """Обернуть данные по минутам во вспомогательный класс."""
-    return {_date: Day(minutes=minutes) for _date, minutes in by_day.items()}
+    result: dict[date, Day] = {}
+    for _date, minutes in by_day.items():
+        array: list[Interval] = []
+        feed: list[Minute] = list(reversed(minutes))
+
+        while feed:
+            next_minute = feed.pop()
+
+            if not array:
+                interval = Interval(minutes=1, is_active=next_minute.is_active)
+                array.append(interval)
+            else:
+                last_interval = array[-1]
+                if last_interval.is_active == next_minute.is_active:
+                    last_interval.minutes += 1
+                else:
+                    interval = Interval(minutes=1, is_active=next_minute.is_active)
+                    array.append(interval)
+        result[_date] = Day(intervals=array)
+    return result
 
 
 def human_readable_time(seconds: float) -> str:
