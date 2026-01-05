@@ -63,7 +63,7 @@ async def change_state(
     return {'message': f'changed to {is_active}'}
 
 
-@app.get('/simple-time-tracker/stats')
+@app.get('/stats')
 async def stats(
     storage: Annotated[Storage, Depends(dep.get_storage)],
     request: Request,
