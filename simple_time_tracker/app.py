@@ -91,8 +91,8 @@ async def stats(
         11: 'ноября',
         12: 'декабря',
     }
-
-    _stats = storage.gather_stats(days=days)
+    moment = datetime.now()  # noqa: DTZ005
+    _stats = storage.gather_stats(moment, days=days)
     return templates.TemplateResponse(
         request=request,
         name='stats.html',

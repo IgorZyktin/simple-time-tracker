@@ -62,7 +62,11 @@ class Storage:
             )
             return bool(int(str_is_active)), timestamp
 
-    def gather_stats(self, days: int) -> dict[date, processing.Day]:
+    def gather_stats(
+        self,
+        now: datetime,
+        days: int,
+    ) -> dict[date, processing.Day]:
         """Сформировать статистический отчёт.
 
         Формат данных:
@@ -73,13 +77,14 @@ class Storage:
          }
         """
         raw_starts = self._gather_raw_starts(days)
+        raw_starts.append((now, None))
         minutes = processing.to_minutes(raw_starts)
         by_days = processing.group_minutes_by_days(minutes)
         spread = processing.spread_minutes(by_days)
         wrapped = processing.wrap_days(spread)
         return wrapped
 
-    def _gather_raw_starts(self, days: int) -> list[tuple[datetime, bool]]:
+    def _gather_raw_starts(self, days: int) -> list[tuple[datetime, bool | None]]:
         """Собрать все стартовые моменты за указанное число дней.
 
         Пример выходных данных:
