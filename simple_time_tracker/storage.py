@@ -40,6 +40,8 @@ class Storage:
             if str(x).endswith('.csv')
         ]
 
+        files.sort()
+
         if not files:
             return False, moment
 
@@ -102,7 +104,7 @@ class Storage:
             for x in os.listdir(self.path.absolute())
             if str(x).endswith('.csv')
         ]
-
+        files.sort()
         lines: list[tuple[datetime, bool]] = []
 
         for filename in files[:days]:
