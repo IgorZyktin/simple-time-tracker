@@ -27,6 +27,8 @@
             start = null
         {% endif %}
 
+        let metricId = '{{ metric_id }}'
+
         function humanReadableDelta(startDate, endDate) {
             let deltaMs = Math.abs(endDate.getTime() - startDate.getTime());
 
@@ -63,7 +65,7 @@
         }
 
         async function updateStatus(newStatus){
-            await fetch(`/simple-time-tracker?is_active=${newStatus}`, {
+            await fetch(`/simple-time-tracker?metric_id=${metricId}&is_active=${newStatus}`, {
               method: 'POST',
             });
             window.location.reload()

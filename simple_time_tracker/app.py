@@ -22,6 +22,7 @@ LOG = logging.getLogger(__name__)
 async def status(
     storage: Annotated[Storage, Depends(dep.get_storage)],
     request: Request,
+    metric_id: str = '1',
     subject: str = 'Ребёнок',
     active_name: str = 'бодрствует',
     passive_name: str = 'спит',
@@ -30,11 +31,12 @@ async def status(
 ):
     """Вернуть страницу с отображением текущего статуса."""
     moment = datetime.now()  # noqa: DTZ005
-    is_active, start = storage.get_state(moment)
+    is_active, start = storage.get_state(moment, metric_id)
     return templates.TemplateResponse(
         request=request,
         name='index.html',
         context={
+            'metric_id': metric_id,
             'subject': subject,
             'active_name': active_name,
             'passive_name': passive_name,
@@ -50,16 +52,17 @@ async def status(
 async def change_state(
     storage: Annotated[Storage, Depends(dep.get_storage)],
     is_active: bool,
+    metric_id: str = '1',
 ) -> dict:
     """Изменить текущее состояние."""
     moment = datetime.now()  # noqa: DTZ005
-    previous_is_active, start = storage.get_state(moment)
+    previous_is_active, start = storage.get_state(moment, metric_id)
 
     if is_active == previous_is_active:
         return {'message': f'no difference from {is_active}'}
 
-    storage.set_state(is_active, moment)
-    LOG.info('[%s] Setting is_active to %s', moment, is_active)
+    storage.set_state(is_active, moment, metric_id)
+    LOG.info('[%s] Setting is_active to %s for metric %s', moment, is_active, metric_id)
     return {'message': f'changed to {is_active}'}
 
 
@@ -67,6 +70,7 @@ async def change_state(
 async def stats(
     storage: Annotated[Storage, Depends(dep.get_storage)],
     request: Request,
+    metric_id: str = '1',
     subject: str = 'Ребёнок',
     active_name: str = 'бодрствует',
     passive_name: str = 'спит',
@@ -92,12 +96,13 @@ async def stats(
         12: 'декабря',
     }
     moment = datetime.now()  # noqa: DTZ005
-    _stats = storage.gather_stats(moment, days=days)
+    _stats = storage.gather_stats(moment, metric_id, days=days)
     return templates.TemplateResponse(
         request=request,
         name='stats.html',
         context={
             'stats': _stats,
+            'metric_id': metric_id,
             'subject': subject,
             'active_name': active_name,
             'passive_name': passive_name,

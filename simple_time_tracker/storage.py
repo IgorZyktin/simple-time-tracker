@@ -21,17 +21,19 @@ class Storage:
         self,
         is_active: bool,
         moment: datetime,
+        metric_id: str,
     ) -> None:
         """Поменять текущее состояние."""
         filename = self.path / (moment.strftime('%Y-%m') + '.csv')
 
         timestamp = moment.isoformat().replace(':', '-')
         with open(filename, mode='a') as file:
-            file.write(f'{timestamp},{int(is_active)}\n')
+            file.write(f'{timestamp},{int(is_active)},{metric_id}\n')
 
     def get_state(
         self,
         moment: datetime,
+        metric_id: str,
     ) -> tuple[bool, datetime]:
         """Вернуть текущее состояние."""
         files = [
@@ -49,15 +51,22 @@ class Storage:
 
         with open(self.path / last_file) as file:
             reader = csv.reader(file)
-            line = None
+            last_line = None
 
             for line in reader:  # noqa: B007
-                pass
+                if len(line) >= 3:
+                    _, _, line_metric_id, *_ = line
+                else:
+                    line_metric_id = '1'
 
-            if line is None:
+                if line_metric_id == metric_id:
+                    last_line = line
+
+            if last_line is None:
                 return False, moment
 
-            str_timestamp, str_is_active = line
+            str_timestamp, str_is_active, *_ = line
+
             timestamp = datetime.strptime(  # noqa: DTZ007
                 str_timestamp,
                 '%Y-%m-%dT%H-%M-%S.%f',
@@ -67,6 +76,7 @@ class Storage:
     def gather_stats(
         self,
         now: datetime,
+        metric_id: str,
         days: int,
     ) -> dict[date, processing.Day]:
         """Сформировать статистический отчёт.
@@ -78,7 +88,7 @@ class Storage:
             ...
          }
         """
-        raw_starts = self._gather_raw_starts(days)
+        raw_starts = self._gather_raw_starts(days, metric_id)
         raw_starts.append((now, None))
         minutes = processing.to_minutes(raw_starts)
         by_days = processing.group_minutes_by_days(minutes)
@@ -86,7 +96,7 @@ class Storage:
         wrapped = processing.wrap_days(spread)
         return wrapped
 
-    def _gather_raw_starts(self, days: int) -> list[tuple[datetime, bool | None]]:
+    def _gather_raw_starts(self, days: int, metric_id: str) -> list[tuple[datetime, bool | None]]:
         """Собрать все стартовые моменты за указанное число дней.
 
         Пример выходных данных:
@@ -110,12 +120,19 @@ class Storage:
         for filename in files[:days]:
             with open(self.path / filename) as file:
                 reader = csv.reader(file)
-                for str_timestamp, str_is_active in reader:
-                    timestamp = datetime.strptime(  # noqa: DTZ007
-                        str_timestamp,
-                        '%Y-%m-%dT%H-%M-%S.%f',
-                    )
-                    is_active = bool(int(str_is_active))
-                    lines.append((timestamp, is_active))
+                for line in reader:
+                    if len(line) >= 3:
+                        str_timestamp, str_is_active, line_metric_id, *_ = line
+                    else:
+                        str_timestamp, str_is_active = line
+                        line_metric_id = '1'
+
+                    if line_metric_id == metric_id:
+                        timestamp = datetime.strptime(  # noqa: DTZ007
+                            str_timestamp,
+                            '%Y-%m-%dT%H-%M-%S.%f',
+                        )
+                        is_active = bool(int(str_is_active))
+                        lines.append((timestamp, is_active))
 
         return lines
