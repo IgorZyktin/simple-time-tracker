@@ -65,7 +65,7 @@ class Storage:
             if last_line is None:
                 return False, moment
 
-            str_timestamp, str_is_active, *_ = line
+            str_timestamp, str_is_active, *_ = last_line
 
             timestamp = datetime.strptime(  # noqa: DTZ007
                 str_timestamp,
